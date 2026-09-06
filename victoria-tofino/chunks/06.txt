@@ -1,0 +1,104 @@
+ps://www.google.com/maps/search/?api=1&query=Middle+Beach+Lodge+Tofino"], ["Tofino stretch alt.", "Pacific Sands", "Cox Bay premium", "Check live; swap only if a sale keeps total sensible", "https://www.google.com/maps/search/?api=1&query=Pacific+Sands+Beach+Resort+Tofino"]], "costs": [["Flights (2)", "$700–860"], ["Lodging", "$900–1,020"], ["Car + fuel", "$260–330"], ["Food + coffee", "$560–650"], ["Sauna / admissions", "$180–220"]], "days": [["Day 1 · Mon Nov 16", "Home → Victoria waterfront", "Fly YYJ, check in Laurel Point. Harbour loop at sunset/blue hour.", "10 Acres / harbour dinner.", "Request harbour-facing room if the upcharge is modest."], ["Day 2 · Tue Nov 17", "Victoria culture → Tofino", "Nourish breakfast; short Royal BC Museum visit; drive with Cathedral Grove.", "Oceanfront check-in; Shelter dinner.", "Aim to arrive before dark."], ["Day 3 · Wed Nov 18", "Rainforest + sauna", "Rainforest Trail / Long Beach; warm lunch; social or private sauna depending live pricing.", "Wolf in the Fog dinner.", "This is the paid “experience” day."], ["Day 4 · Thu Nov 19", "Zero-pressure coast day", "Coffee, Chesterman, read/nap, Cox Bay if conditions are good.", "Moss & Milk + Chocolate Tofino; Jeju dinner.", "Use the room. That is part of the trip."], ["Day 5 · Fri Nov 20", "Tofino → Victoria", "Slow departure, drive in daylight, check in Victoria.", "Persian Grill House Friday buffet window currently listed 4–8, or Yalla.", "Warm, fun last dinner."], ["Day 6 · Sat Nov 21", "Victoria → home", "Brunch, Beacon Hill/Inner Harbour if dry, YYJ→SFO.", "Blue Fox/Jam.", "Simple final day."]], "route_points": ["YYJ", "Victoria", "Royal BC Museum", "Cathedral Grove", "Tofino", "Long Beach", "Chesterman", "Cox Bay", "Victoria", "YYJ"], "points": [{"key": "YYJ", "lat": 48.6469, "lon": -123.4258, "name": "Victoria International Airport"}, {"key": "Victoria", "lat": 48.4215, "lon": -123.369, "name": "Victoria Inner Harbour"}, {"key": "Royal BC Museum", "lat": 48.4198, "lon": -123.3671, "name": "Royal BC Museum"}, {"key": "Cathedral Grove", "lat": 49.288, "lon": -124.666, "name": "Cathedral Grove (MacMillan Park)"}, {"key": "Tofino", "lat": 49.153, "lon": -125.9066, "name": "Tofino"}, {"key": "Long Beach", "lat": 49.054, "lon": -125.719, "name": "Long Beach / Pacific Rim"}, {"key": "Chesterman", "lat": 49.124, "lon": -125.901, "name": "Chesterman Beach"}, {"key": "Cox Bay", "lat": 49.101, "lon": -125.873, "name": "Cox Bay"}, {"key": "Victoria", "lat": 48.4215, "lon": -123.369, "name": "Victoria Inner Harbour"}, {"key": "YYJ", "lat": 48.6469, "lon": -123.4258, "name": "Victoria International Airport"}]}];
+const sidebar = document.getElementById('planTabs');
+const panels = document.getElementById('planPanels');
+const overviewPlans = document.getElementById('overviewPlans');
+const googleFlights = {YVR:'https://www.google.com/travel/flights/flights-from-san-francisco-to-vancouver.html',YYJ:'https://www.google.com/travel/flights/flights-from-san-francisco-to-victoria.html'};
+function moneyRows(costs){return costs.map(x=>`<tr><td>${x[0]}</td><td><b>${x[1]}</b></td></tr>`).join('')}
+function hotelCards(hs){return hs.map(h=>`<div class="hotel"><span class="badge">${h[0]}</span><strong>${h[1]}</strong><div class="small">${h[2]}</div><p><b>${h[3]}</b></p><a target="_blank" rel="noopener" href="${h[4]}">Google Maps + photos ↗</a></div>`).join('')}
+function dayCards(ds){return ds.map(d=>`<article class="day"><div class="daydate">${d[0]}</div><div class="daybody"><h4>${d[1]}</h4><div class="triplets"><div class="mini"><b>Plan</b>${d[2]}</div><div class="mini"><b>Eat</b>${d[3]}</div><div class="mini"><b>Photo / note</b>${d[4]}</div></div></div></article>`).join('')}
+const GEO={
+ YVR:{lat:49.1967,lon:-123.1815,name:'Vancouver International Airport'},
+ YYJ:{lat:48.6469,lon:-123.4258,name:'Victoria International Airport'},
+ TSA:{lat:49.0060,lon:-123.1300,name:'Tsawwassen Ferry Terminal'},
+ SWB:{lat:48.6880,lon:-123.4100,name:'Swartz Bay Ferry Terminal'},
+ VIC:{lat:48.4215,lon:-123.3690,name:'Victoria Inner Harbour'},
+ CAT:{lat:49.2880,lon:-124.6660,name:'Cathedral Grove'},
+ TOF:{lat:49.1530,lon:-125.9066,name:'Tofino'},
+ DEP:{lat:49.1926,lon:-123.9546,name:'Departure Bay Ferry Terminal'},
+ HOR:{lat:49.3742,lon:-123.2715,name:'Horseshoe Bay Ferry Terminal'},
+ BUT:{lat:48.5653,lon:-123.4690,name:'The Butchart Gardens'},
+ MAL:{lat:48.5579,lon:-123.5565,name:'Malahat area'}
+};
+function gmDir(a,b,waypoints=[]){
+ const origin=`${a.lat},${a.lon}`, destination=`${b.lat},${b.lon}`;
+ let u=`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+ if(waypoints.length) u+=`&waypoints=${waypoints.map(w=>encodeURIComponent(`${w.lat},${w.lon}`)).join('%7C')}`;
+ return u;
+}
+function gmPlace(pt){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${pt.lat},${pt.lon}`)}`}
+function pointNamed(p,needle){return p.points.find(x=>x.name.toLowerCase().includes(needle.toLowerCase()))}
+function roadLegLinks(p){
+ const legs=[];
+ const cat=pointNamed(p,'Cathedral Grove')||GEO.CAT;
+ const but=pointNamed(p,'Butchart')||null;
+ const mal=pointNamed(p,'Malahat')||null;
+ if(p.airport==='YVR'){
+   legs.push(['YVR → Tsawwassen',gmDir(GEO.YVR,GEO.TSA)]);
+   legs.push(['Swartz Bay → Victoria',gmDir(GEO.SWB,GEO.VIC)]);
+   legs.push(['Victoria → Tofino',gmDir(GEO.VIC,GEO.TOF,[...(but?[but]:[]),cat])]);
+   const viaNanaimo=p.points.some(x=>x.name.includes('Departure Bay')) || p.route.includes('Nanaimo');
+   if(viaNanaimo){
+     legs.push(['Tofino → Departure Bay',gmDir(GEO.TOF,GEO.DEP)]);
+     legs.push(['Horseshoe Bay → YVR',gmDir(GEO.HOR,GEO.YVR)]);
+   }else{
+     legs.push(['Tofino → Victoria',gmDir(GEO.TOF,GEO.VIC)]);
+     legs.push(['Victoria → Swartz Bay',gmDir(GEO.VIC,GEO.SWB)]);
+     legs.push(['Tsawwassen → YVR',gmDir(GEO.TSA,GEO.YVR)]);
+   }
+ }else{
+   legs.push(['YYJ → Victoria',gmDir(GEO.YYJ,GEO.VIC)]);
+   legs.push(['Victoria → Tofino',gmDir(GEO.VIC,GEO.TOF,[...(but?[but]:[]),cat])]);
+   legs.push(['Tofino → Victoria',gmDir(GEO.TOF,GEO.VIC,mal?[mal]:[])]);
+   legs.push(['Victoria → YYJ',gmDir(GEO.VIC,GEO.YYJ)]);
+ }
+ return `<div class="route-link-grid">${legs.map(x=>`<a class="route-leg" target="_blank" rel="noopener noreferrer" href="${x[1]}">${x[0]} ↗</a>`).join('')}</div>`;
+}
+function buildRouteMap(p){
+ const W=900,H=410,pad=36,pts=p.points;
+ let minLat=Math.min(...pts.map(x=>x.lat)),maxLat=Math.max(...pts.map(x=>x.lat));
+ let minLon=Math.min(...pts.map(x=>x.lon)),maxLon=Math.max(...pts.map(x=>x.lon));
+ if(maxLat-minLat<.5){maxLat+=.25;minLat-=.25} if(maxLon-minLon<.8){maxLon+=.4;minLon-=.4}
+ const latPad=(maxLat-minLat)*.12,lonPad=(maxLon-minLon)*.10; minLat-=latPad;maxLat+=latPad;minLon-=lonPad;maxLon+=lonPad;
+ const xy=(lat,lon)=>({x:pad+(lon-minLon)/(maxLon-minLon)*(W-pad*2),y:H-pad-(lat-minLat)/(maxLat-minLat)*(H-pad*2)});
+ const poly=(arr,cls)=>`<polygon class="${cls}" points="${arr.map(([lon,lat])=>{let q=xy(lat,lon);return `${q.x.toFixed(1)},${q.y.toFixed(1)}`}).join(' ')}"/>`;
+ const island=[[-123.20,48.35],[-123.55,48.48],[-123.95,48.62],[-124.35,48.83],[-124.85,49.05],[-125.15,49.38],[-125.27,49.72],[-124.95,50.10],[-124.52,50.42],[-124.05,50.69],[-123.55,50.78],[-123.18,50.61],[-123.03,50.25],[-123.10,49.82],[-123.12,49.35],[-123.18,48.82]];
+ const mainland=[[-123.55,48.96],[-123.20,48.98],[-122.72,49.10],[-122.40,49.35],[-122.42,49.90],[-123.60,49.90]];
+ let grid=''; for(let i=1;i<5;i++){let x=(W/5)*i;grid+=`<line class="gridline" x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;let y=(H/5)*i;grid+=`<line class="gridline" x1="0" y1="${y}" x2="${W}" y2="${y}"/>`}
+ const route=pts.map(pt=>{let q=xy(pt.lat,pt.lon);return `${q.x.toFixed(1)},${q.y.toFixed(1)}`}).join(' ');
+ const seen=new Map(); pts.forEach((pt,i)=>{const k=`${pt.lat.toFixed(4)},${pt.lon.toFixed(4)}`; if(!seen.has(k))seen.set(k,{pt,nums:[]});seen.get(k).nums.push(i+1)});
+ let pins=''; let chips='';
+ [...seen.values()].forEach(({pt,nums})=>{let q=xy(pt.lat,pt.lon);let label=nums.length===1?String(nums[0]):nums.join('/');
+   pins+=`<a href="${gmPlace(pt)}" target="_blank"><circle class="pin" cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="14"><title>${pt.name}</title></circle><text class="pintext" x="${q.x.toFixed(1)}" y="${q.y.toFixed(1)}">${label}</text></a>`;
+   chips+=`<a class="stop-chip" target="_blank" rel="noopener noreferrer" href="${gmPlace(pt)}"><b>${label}</b>${pt.name} ↗</a>`;
+ });
+ const vic=xy(GEO.VIC.lat,GEO.VIC.lon), tof=xy(GEO.TOF.lat,GEO.TOF.lon);
+ return `<div class="route-map-shell"><svg class="route-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Schematic Vancouver Island route map">${grid}${poly(island,'land')}${poly(mainland,'land')}<polyline class="route-line" points="${route}"/>${pins}<text class="major-label" x="${vic.x+18}" y="${vic.y-18}">Victoria</text><text class="major-label" x="${tof.x+18}" y="${tof.y-18}">Tofino</text></svg><div class="map-legend"><span class="legend-route"></span><span>Trip sequence (schematic, not turn-by-turn road geometry)</span><span>• Tap a numbered stop to open its exact coordinates in Google Maps</span></div><div class="stop-strip">${chips}</div></div>`;
+}
+function driveRows(p){
+ let yvr=p.airport==='YVR';
+ let rows = yvr ? [
+ ['YVR → Tsawwassen terminal','~30–45 min','Allow airport/rental-car buffer'],
+ ['Tsawwassen → Swartz Bay ferry','~1h35 crossing','Reserve vehicle space'],
+ ['Swartz Bay → downtown Victoria','~30 min','Easy'],
+ ['Victoria → Tofino','~4h20 direct','Plan 5.5–6.5h with Cathedral Grove/food'],
+ ['Tofino → Departure Bay, Nanaimo','Just under ~3h','Useful return routing'],
+ ['Horseshoe Bay → YVR','~45–60 min typical allowance','Traffic dependent']
+ ] : [
+ ['YYJ → downtown Victoria','~30 min','Simple arrival'],
+ ['Victoria → Tofino','~4h20 direct','Plan 5.5–6.5h with Cathedral Grove/food'],
+ ['Swartz Bay / YYJ area → Tofino','~4h40 direct','Useful benchmark'],
+ ['Nanaimo Departure Bay → Tofino','Just under ~3h','If routing via Nanaimo'],
+ ['Tofino → Victoria','~4h20 direct','Prefer daylight in Nov']
+ ];
+ return rows.map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td></tr>`).join('');
+}
+plans.forEach(p=>{
+ sidebar.insertAdjacentHTML('beforeend',`<button class="tabbtn" data-tab="${p.id}"><span class="tabnum">${p.rank}</span>${p.title}</button>`);
+ overviewPlans.insertAdjacentHTML('beforeend',`<div class="overview-plan" onclick="showTab('${p.id}')"><div class="big-num">${p.rank}</div><div><b>${p.title}</b><div class="small">${p.dates} · ${p.nights} · ${p.style}</div></div><div class="right"><b>${p.total}</b><div class="small">${p.score}</div></div></div>`);
+ let section=document.createElement('section');section.className='panel';section.id=p.id;
+ section.innerHTML=`<div class="planhead"><div class="content"><div class="eyebrow">Plan ${p.rank} · ${p.style}</div><h1>${p.title}</h1><p>${p.dates} · ${p.nights}<br>${p.route}</p><div class="price-pill"><span>Working total for 2</span><b>${p.total}</b></div><div class="rating">${p.score} · ${p.weather}</div></div></div>
+ <div class="content"><div class="callout"><strong>Why I like this plan:</strong> ${p.why}</div>
+ <div class="grid"><div class="card span8"><div class="label">Flight approach</div><h3>${p.airport==='YVR'?'Nonstop to Vancouver + ferry':'Fly into Victoria (YYJ)'}</h3><p>${p.flight}</p><div class="btnrow"><a class="btn" target="_blank" href="${p.flight_url}">Live exact-date fares ↗</a><a class="btn secondary" target="_blank" href="${googleFlights[p.airport]}">Google Flights route ↗</a></div></div><div class="card span4"><div class="label">Working cost</div><table class="cost-table">${moneyRows(p.costs)}<tr><td><b>Total</b></td><td><b>${p.total}</b></td></tr></table></div></div>
+ <h2>Lodging options</h2><div class="hotel-grid">${hotelCards(p.hotels)}</div>
+ <h2>Home-to-home itinerary</h2><div class="days">${dayCards(p.days)}</div>
+ <h2>Route map + drive reality</h2><div class="grid"><div class="span8"><
