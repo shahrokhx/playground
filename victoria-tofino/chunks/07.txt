@@ -1,0 +1,12 @@
+div class="map">${buildRouteMap(p)}</div><div class="route-note"><b>Fixed for local-file viewing:</b> this map is self-contained, so it does not depend on OpenStreetMap/Leaflet tile servers and will not show the “Access blocked / referer required” error. The line shows trip order; use the road-leg buttons below for actual Google Maps routing.</div>${roadLegLinks(p)}<div class="btnrow"><a class="btn secondary" target="_blank" rel="noopener noreferrer" href="https://www.bcferries.com/">BC Ferries live schedules ↗</a></div></div><div class="card span4"><table class="drive-table"><thead><tr><th>Segment</th><th>Time</th><th>Note</th></tr></thead><tbody>${driveRows(p)}</tbody></table></div></div>
+ <div class="footer">Prices are current-working estimates, not held reservations. Hotels and flights can move quickly. All plans assume two adults, economy airfare, one standard rental car, good casual food + a few nicer meals, and moderate paid activities.</div></div>`;
+ panels.appendChild(section);
+});
+function showTab(id){
+ document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));
+ document.querySelectorAll('.tabbtn').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('sidebar').addEventListener('click',e=>{const b=e.target.closest('.tabbtn');if(b)showTab(b.dataset.tab)});
+</script>
+</body></html>
